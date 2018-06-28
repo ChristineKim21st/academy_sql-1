@@ -774,7 +774,7 @@ SELECT a.EMPNO
 -- job별로 경조사비를 급여대비 일정 비율로 지급하고 있다.
 -- 각 직원들의 경조사비 지원금을 구하자
 /*
-    CLERK       : 8%
+    CLERK       : 5%
     SALESMAN    : 4%
     MANAGER     : 3.7%
     ANALYST     : 3%
@@ -784,10 +784,10 @@ SELECT e.EMPNO
      , e.ENAME
      , e.JOB
      , DECODE(e.JOB  -- expr
-             ,'CLERK', e.SAL * 0.05 -- search, result
-             ,'SALESMAN', e.SAL * 0.04
-             ,'MANAGER', e.SAL * 0.037
-             ,'ANALYST', e.SAL * 0.03
+             ,'CLERK'    , e.SAL * 0.05 -- search, result
+             ,'SALESMAN' , e.SAL * 0.04
+             ,'MANAGER'  , e.SAL * 0.037
+             ,'ANALYST'  , e.SAL * 0.03
              ,'PRESIDENT', e.SAL * 0.015) "경조사비 지원금"
   FROM emp e
 ;
