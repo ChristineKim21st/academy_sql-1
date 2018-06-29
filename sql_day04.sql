@@ -222,12 +222,107 @@ SELECT e.EMPNO
 -- 1. 이 회사의 평균 급여보다 급여가 
 --    큰 직원들이 목록을 조회
 --    (사번, 이름, 급여)
+
+-- a) 회사의 평균 급여 : AVG(sal)
+SELECT AVG(e.SAL)
+  FROM emp e
+;
+
+-- b) 평균 급여보다 급여가 높은 직원 조회
+SELECT e.EMPNO
+     , e.ENAME
+     , e.SAL
+  FROM emp e
+ WHERE e.SAL > '1807.8125'
+;
+
+-- c) a, b 쿼리를 합치자
+SELECT e.EMPNO
+     , e.ENAME
+     , e.SAL
+  FROM emp e
+ WHERE e.SAL > (SELECT AVG(e.SAL)
+                  FROM emp e)   
+;
+
+
 -- 2. 급여가 평균 급여보다 크면서 
 --    사번이 7700 번보다 높은 직원 조회
 --    (사번, 이름, 급여)
+-- 1번에서 평균보다 많는 직원 구한 쿼리
+-- a) AND 조건으로 처리
+SELECT e.EMPNO
+     , e.ENAME
+     , e.SAL
+  FROM emp e
+ WHERE e.SAL > (SELECT AVG(e.SAL)
+                  FROM emp e)
+   AND e.EMPNO > 7700  
+   
+-- b) sub-query 로 해결 : FROM 절에 1의 결과를 임시테이블처럼 활용
+SELECT a.*
+  FROM (SELECT e.EMPNO
+             , e.ENAME
+             , e.SAL
+          FROM emp e
+         WHERE e.SAL > (SELECT AVG(e.SAL)
+                          FROM emp e)) a
+ WHERE a.EMPNO > 7700
+;
+
 -- 3. 각 직무별로 최대 급여를 받는 
 --    직원 목록을 조회
 --    (사번, 이름, 직무, 급여)
+-- a) 직무별 최대급여를 구하는 서브쿼리
+SELECT e.JOB
+     , MAX(e.SAL) max_sal
+  FROM emp e
+ GROUP BY e.JOB
+;  
+
+-- b) a를 사용할 메인 쿼리 
+--    최대 급여가 자신의 급여와 같은지, 
+--    그 때의 직무가 나의 직무와 같은지 비교 필요
+SELECT e.EMPNO
+     , e.ENAME
+     , e.JOB
+     , e.SAL
+  FROM emp e
+ WHERE e.SAL = (SELECT e.JOB  -- >> ORA-00913: too many values
+                     , MAX(e.SAL) max_sal
+                  FROM emp e
+                 GROUP BY e.JOB)  
+;  
+-- > WHERE 절에서 비교는 e.SAL 은 1행당 비교
+--   그런데 서브쿼리에서 돌아오는 값은 총 6행
+--   1행과 6행은 비교 자체가 불가능
+
+--> IN 연산자를 사용하여 해결
+SELECT e.EMPNO
+     , e.ENAME
+     , e.JOB
+     , e.SAL
+  FROM emp e
+ WHERE (e.JOB, e.SAL) IN (SELECT e.JOB 
+                               , MAX(e.SAL) max_sal
+                            FROM emp e
+                           GROUP BY e.JOB)  
+;  
+
+SELECT e.EMPNO
+     , e.ENAME
+     , e.JOB
+     , e.SAL
+  FROM emp e
+ WHERE e.SAL IN (SELECT MAX(e.SAL) max_sal
+                   FROM emp e
+                  GROUP BY e.JOB)  
+;  --> 데이터가 다양해지면 잘못 작동할 수 있음
+
+
+
+
+
 -- 4. 각 월별 입사인원을 세로로 출력
 
 
